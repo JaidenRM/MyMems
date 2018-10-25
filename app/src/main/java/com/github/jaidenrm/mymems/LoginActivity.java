@@ -23,19 +23,29 @@ import com.google.firebase.auth.FirebaseUser;
 public class LoginActivity extends AppCompatActivity {
 
     //UI
-    EditText username;
-    EditText password;
-    Button loginButton;
-    ProgressBar loading;
+    private EditText username;
+    private EditText password;
+    private Button loginButton;
+    private ProgressBar loading;
 
-    FirebaseAuth mAuth;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        mAuth = FirebaseAuth.getInstance();
 
+        mAuth = FirebaseAuth.getInstance();
+        InitUI();
+    }
+
+    /*
+     * Find the UI views and set up an onClick listener for the sign up button
+     * This button will either sign you in, if that fails it will create an alert
+     * dialog which will ask if you are signing up or incorrect details. The next
+     * step will be determined based on that answer
+     */
+    private void InitUI() {
         username = findViewById(R.id.login_text_username);
         password = findViewById(R.id.login_text_password);
         loginButton = findViewById(R.id.login_button_login);
@@ -71,6 +81,11 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+    /*
+     * Creates a simple alert dialogue asking hte user if the information
+     * entered was to sign up or sign in if it doesn't match any of our existing
+     * users credentials
+     */
     private void CreateAlertDialog() {
         AlertDialog.Builder builder;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -99,7 +114,7 @@ public class LoginActivity extends AppCompatActivity {
                                     .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
                                         @Override
                                         public void onSuccess(AuthResult authResult) {
-                                            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                            Intent intent = new Intent(getApplicationContext(), SignUpActivity.class);
                                             startActivity(intent);
                                         }
                                     });
