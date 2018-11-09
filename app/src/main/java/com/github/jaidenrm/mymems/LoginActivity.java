@@ -71,6 +71,8 @@ public class LoginActivity extends AppCompatActivity {
                         @Override
                         public void onFailure(@NonNull Exception e) {
                             CreateAlertDialog();
+                            loginButton.setVisibility(View.VISIBLE);
+                            loading.setVisibility(View.INVISIBLE);
                         }
                     });
                 }
