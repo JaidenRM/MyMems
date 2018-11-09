@@ -1,3 +1,16 @@
 <resources>
     <string name="app_name">MyMems</string>
+
+    <!-- Login activity string resources START -->
+    <string name="login_email">Email</string>
+    <string name="login_password">Password</string>
+    <string name="login_login">Login</string>
+    <!-- Login activity string resources END -->
+
+    <!-- Signup activity string resources START -->
+    <string name="signup_firstName">First Name</string>
+    <string name="signup_lastName">Last Name</string>
+    <string name="signup_username">Username</string>
+    <string name="signup_signup">Sign Up!</string>
+    <!--Signup activity string resources END -->
 </resources>
