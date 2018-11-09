@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -29,6 +30,7 @@ public class SignUpActivity extends AppCompatActivity {
     private EditText lastName;
     private EditText username;
     private Button signup;
+    private ProgressBar loading;
 
     //firebase
     private FirebaseFirestore db;
@@ -54,10 +56,13 @@ public class SignUpActivity extends AppCompatActivity {
         lastName = findViewById(R.id.signup_lastName);
         username = findViewById(R.id.signup_username);
         signup = findViewById(R.id.signup_button_signup);
+        loading = findViewById(R.id.signup_loading);
 
         signup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                signup.setVisibility(View.INVISIBLE);
+                loading.setVisibility(View.VISIBLE);
                 User newUser =
                         new User(firstName.getText().toString(),
                                 lastName.getText().toString(),
@@ -76,6 +81,8 @@ public class SignUpActivity extends AppCompatActivity {
                                 }
                                 else {
                                     Toast.makeText(SignUpActivity.this, "Sign Up FAILED :(", Toast.LENGTH_SHORT).show();
+                                    signup.setVisibility(View.VISIBLE);
+                                    loading.setVisibility(View.INVISIBLE);
                                 }
                             }
                         });
