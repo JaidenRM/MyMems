@@ -23,7 +23,7 @@
         app:layout_constraintGuide_percent="0.504222" />
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/main_newPost_button"
         android:layout_width="195dp"
         android:layout_height="49dp"
         android:layout_marginBottom="8dp"
@@ -32,7 +32,7 @@
         android:layout_marginRight="8dp"
         android:layout_marginStart="8dp"
         android:background="@drawable/button_style"
-        android:text="Post"
+        android:text="New Post"
         android:textColor="#ffffff"
         android:textSize="28sp"
         android:textStyle="bold"
