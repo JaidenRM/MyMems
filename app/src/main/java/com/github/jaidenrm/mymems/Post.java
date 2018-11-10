@@ -7,12 +7,14 @@ import java.util.Date;
 
 public class Post {
 
-    private String title;
-    private String description;
-    private String[] picture;
-    private Timestamp dateCreated;
+    public String title;
+    public String description;
+    public String[] picture;
+    public Timestamp dateCreated;
+    public String userID;
 
-    public Post(String title, String description, String[] picture) {
+    public Post(String userID, String title, String description, String[] picture) {
+        this.userID = userID;
         this.title = title;
         this.description = description;
         this.picture = picture;

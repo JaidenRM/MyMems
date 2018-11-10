@@ -60,10 +60,11 @@ public class PostActivity extends AppCompatActivity {
                 loading.setVisibility(View.VISIBLE);
                 submit.setVisibility(View.INVISIBLE);
                 Post newPost =
-                        new Post(title.getText().toString(),
+                        new Post(mAuth.getUid(),
+                                 title.getText().toString(),
                                  description.getText().toString(),
                                  null);
-                db.collection("posts").document(mAuth.getUid())
+                db.collection("posts").document()
                         .set(newPost)
                         .addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override

@@ -59,7 +59,7 @@
         app:layout_constraintStart_toStartOf="@+id/post_guideline_v1"
         app:layout_constraintTop_toBottomOf="@+id/post_toolbar" />
 
-    <TextView
+    <EditText
         android:id="@+id/post_description"
         android:background="@drawable/rectangle_border"
         android:layout_width="0dp"
@@ -72,6 +72,7 @@
         android:layout_marginTop="8dp"
         android:hint="@string/post_description"
         android:padding="5dp"
+        android:gravity="top|left"
         app:layout_constraintBottom_toTopOf="@+id/post_guideline_h1"
         app:layout_constraintEnd_toStartOf="@+id/post_guideline_v2"
         app:layout_constraintStart_toStartOf="@+id/post_guideline_v1"
