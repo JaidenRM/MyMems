@@ -9,11 +9,11 @@ public class Post {
 
     public String title;
     public String description;
-    public String[] picture;
+    public String picture;
     public Timestamp dateCreated;
     public String userID;
 
-    public Post(String userID, String title, String description, String[] picture) {
+    public Post(String userID, String title, String description, String picture) {
         this.userID = userID;
         this.title = title;
         this.description = description;

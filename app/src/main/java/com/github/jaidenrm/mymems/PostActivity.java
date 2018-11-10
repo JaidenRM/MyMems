@@ -19,6 +19,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -87,18 +88,7 @@ public class PostActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             //TODO: move this elsewhere so it triggers when SUBMIT is clicked
-            storageRef.child("images/"+filePath.getLastPathSegment()).putFile(filePath)
-                    .addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-                        @Override
-                        public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-                            if(task.isSuccessful()) {
-                                Toast.makeText(PostActivity.this, "SUCCESSFUL upload", Toast.LENGTH_SHORT);
-                            }
-                            else {
-                                Toast.makeText(PostActivity.this, "UNSUCCESSFUL upload", Toast.LENGTH_SHORT);
-                            }
-                        }
-                    });
+
         }
     }
 
@@ -129,7 +119,11 @@ public class PostActivity extends AppCompatActivity {
         camera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                try {
+                    TakePhoto();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
 
@@ -139,28 +133,45 @@ public class PostActivity extends AppCompatActivity {
             public void onClick(View v) {
                 loading.setVisibility(View.VISIBLE);
                 submit.setVisibility(View.INVISIBLE);
-                Post newPost =
-                        new Post(mAuth.getUid(),
-                                 title.getText().toString(),
-                                 description.getText().toString(),
-                                 null);
-                db.collection("posts").document()
-                        .set(newPost)
-                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                final StorageReference imageRef = storageRef.child("images/"+filePath.getLastPathSegment());
+                imageRef.putFile(filePath)
+                        .addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
                             @Override
-                            public void onComplete(@NonNull Task<Void> task) {
+                            public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
                                 if(task.isSuccessful()) {
-                                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                                    startActivity(intent);
+                                    imageRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                        @Override
+                                        public void onSuccess(Uri uri) {
+                                            Post newPost =
+                                                    new Post(mAuth.getUid(),
+                                                            title.getText().toString(),
+                                                            description.getText().toString(),
+                                                            uri.toString());
+                                            Toast.makeText(PostActivity.this, "SUCCESSFUL upload", Toast.LENGTH_SHORT);
+                                            db.collection("posts").document()
+                                                    .set(newPost)
+                                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                        @Override
+                                                        public void onComplete(@NonNull Task<Void> task) {
+                                                            if (task.isSuccessful()) {
+                                                                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                                                startActivity(intent);
+                                                            } else {
+                                                                Toast.makeText(PostActivity.this, "Post unsuccessful :(", Toast.LENGTH_SHORT).show();
+                                                                loading.setVisibility(View.INVISIBLE);
+                                                                submit.setVisibility(View.VISIBLE);
+                                                            }
+                                                        }
+                                                    });
+                                        }
+                                    });
+
                                 }
                                 else {
-                                    Toast.makeText(PostActivity.this, "Post unsuccessful :(", Toast.LENGTH_SHORT).show();
-                                    loading.setVisibility(View.INVISIBLE);
-                                    submit.setVisibility(View.VISIBLE);
+                                    Toast.makeText(PostActivity.this, "UNSUCCESSFUL upload", Toast.LENGTH_SHORT);
                                 }
                             }
                         });
-
             }
         });
     }
