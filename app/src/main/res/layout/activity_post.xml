@@ -7,42 +7,42 @@
     tools:context=".PostActivity">
 
     <android.support.constraint.Guideline
-        android:id="@+id/guideline3"
+        android:id="@+id/post_guideline_h1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         app:layout_constraintGuide_percent="0.75" />
 
     <android.support.constraint.Guideline
-        android:id="@+id/guideline4"
+        android:id="@+id/post_guideline_h2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         app:layout_constraintGuide_percent="0.25" />
 
     <android.support.constraint.Guideline
-        android:id="@+id/guideline5"
+        android:id="@+id/post_guideline_v1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         app:layout_constraintGuide_percent="0.2" />
 
     <android.support.constraint.Guideline
-        android:id="@+id/guideline6"
+        android:id="@+id/post_guideline_v2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         app:layout_constraintGuide_percent="0.8" />
 
     <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar2"
+        android:id="@+id/post_toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#ffffff"
-        app:title="Create A Post"/>
+        app:title="@string/post_createPost"/>
 
     <EditText
-        android:id="@+id/editText"
+        android:id="@+id/post_title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
@@ -52,15 +52,16 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:ems="10"
-        android:hint="Post Title..."
+        android:hint="@string/post_title"
         android:inputType="textPersonName"
-        app:layout_constraintBottom_toTopOf="@+id/guideline4"
-        app:layout_constraintEnd_toStartOf="@+id/guideline6"
-        app:layout_constraintStart_toStartOf="@+id/guideline5"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar2" />
+        app:layout_constraintBottom_toTopOf="@+id/post_guideline_h2"
+        app:layout_constraintEnd_toStartOf="@+id/post_guideline_v2"
+        app:layout_constraintStart_toStartOf="@+id/post_guideline_v1"
+        app:layout_constraintTop_toBottomOf="@+id/post_toolbar" />
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/post_description"
+        android:background="@drawable/rectangle_border"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginBottom="8dp"
@@ -69,14 +70,15 @@
         android:layout_marginRight="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:hint="Describe what is happening in your moment here..."
-        app:layout_constraintBottom_toTopOf="@+id/guideline3"
-        app:layout_constraintEnd_toStartOf="@+id/guideline6"
-        app:layout_constraintStart_toStartOf="@+id/guideline5"
-        app:layout_constraintTop_toTopOf="@+id/guideline4" />
+        android:hint="@string/post_description"
+        android:padding="5dp"
+        app:layout_constraintBottom_toTopOf="@+id/post_guideline_h1"
+        app:layout_constraintEnd_toStartOf="@+id/post_guideline_v2"
+        app:layout_constraintStart_toStartOf="@+id/post_guideline_v1"
+        app:layout_constraintTop_toTopOf="@+id/post_guideline_h2" />
 
     <Button
-        android:id="@+id/button2"
+        android:id="@+id/post_submit_button"
         android:layout_width="112dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="32dp"
@@ -85,7 +87,7 @@
         android:layout_marginRight="8dp"
         android:layout_marginStart="8dp"
         android:background="@drawable/button_style"
-        android:text="Submit Post"
+        android:text="@string/post_submit"
         android:textColor="#ffffff"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -93,7 +95,7 @@
 
     <ImageButton
         android:backgroundTint="#000000"
-        android:id="@+id/imageButton"
+        android:id="@+id/post_camera_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
@@ -102,10 +104,10 @@
         android:layout_marginRight="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/button2"
+        app:layout_constraintBottom_toTopOf="@+id/post_submit_button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/guideline3"
+        app:layout_constraintTop_toTopOf="@+id/post_guideline_h1"
         app:srcCompat="@android:drawable/ic_menu_camera" />
 
 </android.support.constraint.ConstraintLayout>
