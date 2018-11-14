@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -26,7 +27,9 @@ import android.widget.Toast;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -40,6 +43,8 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import static com.google.android.gms.location.LocationServices.getFusedLocationProviderClient;
 
 public class PostActivity extends AppCompatActivity {
 
@@ -67,6 +72,7 @@ public class PostActivity extends AppCompatActivity {
     private String currentPhotoPath;
     private FusedLocationProviderClient fusedLocationClient;
     private LocationRequest locationRequest;
+    private LocationCallback locationCallback;
     private Location lastKnownLocation;
 
     @SuppressLint("MissingPermission")
@@ -78,7 +84,7 @@ public class PostActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
         storageRef = FirebaseStorage.getInstance().getReference();
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        fusedLocationClient = getFusedLocationProviderClient(this);
 
         StartLocationUpdates();
         InitUI();
@@ -135,6 +141,32 @@ public class PostActivity extends AppCompatActivity {
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         locationRequest.setInterval(UPDATE_INTERVAL);
         locationRequest.setFastestInterval(FASTEST_INTERVAL);
+
+        //create settings obj using our locrequest
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
+        builder.addLocationRequest(locationRequest);
+        LocationSettingsRequest locationSettingsRequest = builder.build();
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            //mainactivity asks for permissions tho
+        }
+        else {
+            locationCallback = new LocationCallback() {
+                @Override
+                public void onLocationResult(LocationResult locationResult) {
+                    onLocationChanged(locationResult.getLastLocation());
+                }
+            };
+            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper());
+        }
+    }
+
+    public void onLocationChanged(Location location) {
+        lastKnownLocation = location;
+    }
+
+    private void stopLocationUpdates() {
+        fusedLocationClient.removeLocationUpdates(locationCallback);
     }
 
     private void InitUI() {
@@ -162,25 +194,6 @@ public class PostActivity extends AppCompatActivity {
             public void onClick(View v) {
                 loading.setVisibility(View.VISIBLE);
                 submit.setVisibility(View.INVISIBLE);
-
-                if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)
-                        != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(),
-                        Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    fusedLocationClient.getLastLocation()
-                            .addOnCompleteListener(new OnCompleteListener<Location>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Location> task) {
-                                    if(task.isSuccessful()) {
-                                        lastKnownLocation = task.getResult();
-                                        Log.e(TAG, "onComplete: " + task.getResult().toString() );
-                                    }
-                                }
-                            });
-                }
-                else {
-                    ActivityCompat.requestPermissions(PostActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
-                                            Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
-                }
                 //TODO: work out a check for filePath being null (when user doesn't upload photo
                 final StorageReference imageRef = storageRef.child("images/"+filePath.getLastPathSegment());
                 imageRef.putFile(filePath)
@@ -204,6 +217,7 @@ public class PostActivity extends AppCompatActivity {
                                                         @Override
                                                         public void onComplete(@NonNull Task<Void> task) {
                                                             if (task.isSuccessful()) {
+                                                                stopLocationUpdates();
                                                                 Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                                                                 startActivity(intent);
                                                             } else {
