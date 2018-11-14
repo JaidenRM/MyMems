@@ -36,8 +36,6 @@ public class SignUpActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
 
-    //User info
-    private String currUserID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +44,7 @@ public class SignUpActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
-        currUserID = getIntent().getStringExtra("UserID");
+
         InitUI();
     }
 
