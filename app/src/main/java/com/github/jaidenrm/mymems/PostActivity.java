@@ -1,10 +1,16 @@
 package com.github.jaidenrm.mymems;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -18,6 +24,12 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -32,9 +44,17 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import static com.google.android.gms.location.LocationServices.getFusedLocationProviderClient;
+
 public class PostActivity extends AppCompatActivity {
 
+
     private static final int REQUEST_IMAGE_CAPTURE = 1;
+    private static final int REQUEST_LOCATION = 2;
+    //if noone has asked for our location we will ask for after this time
+    private final long UPDATE_INTERVAL = 10 * 1000; /* 10 * 1 sec */
+    //if someone else has updated location after this time, lets use it, might as well
+    private final long FASTEST_INTERVAL = 2 * 1000;
     private final String TAG = "Post-Activity";
 
     private EditText title;
@@ -45,38 +65,45 @@ public class PostActivity extends AppCompatActivity {
     private ImageView testImg;
 
     private FirebaseFirestore db;
-    private FirebaseAuth mAuth;
+    private FirebaseAuth auth;
     private StorageReference storageRef;
 
     private Uri filePath;
-    private String mCurrentPhotoPath;
+    private String currentPhotoPath;
+    private FusedLocationProviderClient fusedLocationClient;
+    private LocationRequest locationRequest;
+    private LocationCallback locationCallback;
+    private Location lastKnownLocation;
 
+    @SuppressLint("MissingPermission")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_post);
 
         db = FirebaseFirestore.getInstance();
-        mAuth = FirebaseAuth.getInstance();
+        auth = FirebaseAuth.getInstance();
         storageRef = FirebaseStorage.getInstance().getReference();
+        fusedLocationClient = getFusedLocationProviderClient(this);
 
+        StartLocationUpdates();
         InitUI();
     }
 
     private void TakePhoto() throws IOException {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         //this is to prevent app crashing as startActForRes can crash on null
-        if(intent.resolveActivity(getPackageManager()) != null) {
+        if (intent.resolveActivity(getPackageManager()) != null) {
             File photoFile = null;
             try {
                 photoFile = CreateImageFile();
             } catch (IOException e) {
                 Log.e(TAG, "TakePhoto: ", e);
             }
-            if(photoFile != null) {
+            if (photoFile != null) {
                 filePath = FileProvider.getUriForFile(this,
-                                "com.github.jaidenrm.camera_fp",
-                                          photoFile);
+                        "com.github.jaidenrm.camera_fp",
+                        photoFile);
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, filePath);
                 startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
             }
@@ -86,7 +113,7 @@ public class PostActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             //TODO: move this elsewhere so it triggers when SUBMIT is clicked
 
         }
@@ -104,8 +131,42 @@ public class PostActivity extends AppCompatActivity {
         );
 
         // Save a file: path for use with ACTION_VIEW intents
-        mCurrentPhotoPath = image.getAbsolutePath();
+        currentPhotoPath = image.getAbsolutePath();
         return image;
+    }
+
+    private void StartLocationUpdates() {
+        //start location requests
+        locationRequest = new LocationRequest();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(UPDATE_INTERVAL);
+        locationRequest.setFastestInterval(FASTEST_INTERVAL);
+
+        //create settings obj using our locrequest
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
+        builder.addLocationRequest(locationRequest);
+        LocationSettingsRequest locationSettingsRequest = builder.build();
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            //mainactivity asks for permissions tho
+        }
+        else {
+            locationCallback = new LocationCallback() {
+                @Override
+                public void onLocationResult(LocationResult locationResult) {
+                    onLocationChanged(locationResult.getLastLocation());
+                }
+            };
+            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper());
+        }
+    }
+
+    public void onLocationChanged(Location location) {
+        lastKnownLocation = location;
+    }
+
+    private void stopLocationUpdates() {
+        fusedLocationClient.removeLocationUpdates(locationCallback);
     }
 
     private void InitUI() {
@@ -133,6 +194,7 @@ public class PostActivity extends AppCompatActivity {
             public void onClick(View v) {
                 loading.setVisibility(View.VISIBLE);
                 submit.setVisibility(View.INVISIBLE);
+                //TODO: work out a check for filePath being null (when user doesn't upload photo
                 final StorageReference imageRef = storageRef.child("images/"+filePath.getLastPathSegment());
                 imageRef.putFile(filePath)
                         .addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
@@ -143,10 +205,11 @@ public class PostActivity extends AppCompatActivity {
                                         @Override
                                         public void onSuccess(Uri uri) {
                                             Post newPost =
-                                                    new Post(mAuth.getUid(),
+                                                    new Post(auth.getUid(),
                                                             title.getText().toString(),
                                                             description.getText().toString(),
-                                                            uri.toString());
+                                                            uri.toString(),
+                                                            lastKnownLocation);
                                             Toast.makeText(PostActivity.this, "SUCCESSFUL upload", Toast.LENGTH_SHORT);
                                             db.collection("posts").document()
                                                     .set(newPost)
@@ -154,6 +217,7 @@ public class PostActivity extends AppCompatActivity {
                                                         @Override
                                                         public void onComplete(@NonNull Task<Void> task) {
                                                             if (task.isSuccessful()) {
+                                                                stopLocationUpdates();
                                                                 Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                                                                 startActivity(intent);
                                                             } else {
