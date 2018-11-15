@@ -13,7 +13,7 @@ public class Post {
     public String title;
     public String description;
     public String picture;
-    public Timestamp dateCreated;
+    public Date dateCreated;
     public String userID;
     public GeoPoint myLoc;
 
@@ -25,4 +25,6 @@ public class Post {
         this.myLoc = new GeoPoint(myLoc.getLatitude(), myLoc.getLongitude());
         this.dateCreated = new Timestamp(new Date().getTime());
     }
+
+    public Post() {}
 }

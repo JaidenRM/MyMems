@@ -19,5 +19,6 @@
     <string name="post_title">Post Title...</string>
     <string name="post_description">Describe what is happening in your moment here...</string>
     <string name="post_submit">Submit Post</string>
+    <string name="title_activity_maps">Map</string>
     <!-- Post activity string resources END -->
 </resources>
